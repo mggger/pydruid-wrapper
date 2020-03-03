@@ -1,4 +1,4 @@
-from pydruid.utils.aggregators import count, cardinality, thetasketch
+from pydruid.utils.aggregators import count, cardinality, thetasketch, longsum
 from utils.exceptions import ParseArgException
 from .queryBuilder import QueryBuilder
 
@@ -48,6 +48,11 @@ class TopNBuilder(QueryBuilder):
             return {"aggregations": {"result": count(self._field)},
                     "metric": "result"}
 
+        elif self._metric == 'longsum':
+            return {"aggregations": {"result": longsum(self._field)},
+                    "metric": "result"}
+
+
         else:
             raise ParseArgException("Parse metric failed")
 
@@ -63,10 +68,7 @@ class TopNBuilder(QueryBuilder):
 
         maxDepth = min(len(result), self._limit)
 
-        if self._metric == 'pv':
-            return [{self._dimension: i[self._dimension], 'result': i['result']}
+
+        return [{self._dimension: i[self._dimension], 'result': i['result']}
                     for i in result[:maxDepth]]
 
-        if self._metric == 'uv' or self._metric == 'exact_uv':
-            return [{self._dimension: i[self._dimension], 'result': int(i['result'])}
-                    for i in result[:maxDepth]]
